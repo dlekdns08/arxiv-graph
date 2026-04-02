@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from arxiv_graph.storage.models import Base
 
-_DATA_DIR = Path(__file__).resolve().parents[4] / "data"
+_DATA_DIR = Path(__file__).resolve().parents[3] / "data"
 _DEFAULT_DB_URL = f"sqlite:///{_DATA_DIR / 'arxiv_graph.db'}"
 
 
