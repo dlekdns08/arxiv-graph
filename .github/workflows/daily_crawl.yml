@@ -13,6 +13,9 @@ on:
       - "uv.lock"
       - ".github/workflows/daily_crawl.yml"
 
+permissions:
+  issues: write
+
 jobs:
   crawl:
     name: Crawl & Build Graph
