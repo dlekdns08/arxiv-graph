@@ -4,6 +4,14 @@ on:
   schedule:
     - cron: "0 6 * * *"   # 매일 06:00 UTC (= 한국 15:00 KST)
   workflow_dispatch:        # 수동 실행 버튼도 활성화
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/daily_crawl.yml"
 
 jobs:
   crawl:
