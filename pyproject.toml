@@ -1,7 +1,7 @@
 [project]
 name = "arxiv-graph"
 version = "0.1.0"
-description = "Add your description here"
+description = "Daily arXiv crawler and knowledge graph builder for cs.CL / cs.LG papers"
 requires-python = ">=3.12"
 dependencies = [
     "apscheduler>=3.11.2",
@@ -9,12 +9,31 @@ dependencies = [
     "loguru>=0.7.3",
     "networkx>=3.6.1",
     "pydantic>=2.12.5",
+    "scikit-learn>=1.8.0",
     "sentence-transformers>=5.3.0",
     "sqlalchemy>=2.0.48",
+    "typer>=0.24.1",
 ]
+
+[project.scripts]
+arxiv-graph = "arxiv_graph.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arxiv_graph"]
 
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
     "ruff>=0.15.8",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
