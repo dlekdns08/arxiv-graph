@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from arxiv_graph.storage.models import Paper
 
 
-_RECENCY_HALF_LIFE_DAYS = 30  # score halves every 30 days
+_RECENCY_FLAT_DAYS = 30  # papers within this window all score 1.0
 
 
 def score_recency(paper: Paper) -> float:
@@ -26,7 +26,10 @@ def score_recency(paper: Paper) -> float:
     if pub.tzinfo is None:
         pub = pub.replace(tzinfo=timezone.utc)
     age_days = max((now - pub).days, 0)
-    return 2 ** (-age_days / _RECENCY_HALF_LIFE_DAYS)
+    if age_days <= _RECENCY_FLAT_DAYS:
+        return 1.0
+    # 30일 초과부터 지수 감쇠 (반감기 30일)
+    return 2 ** (-( age_days - _RECENCY_FLAT_DAYS) / _RECENCY_FLAT_DAYS)
 
 
 def score_citations(paper: Paper) -> float:
