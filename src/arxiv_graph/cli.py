@@ -61,5 +61,43 @@ def stats() -> None:
     session.close()
 
 
+@app.command()
+def enrich() -> None:
+    """Backfill citation counts for all papers already in the DB via Semantic Scholar."""
+    from arxiv_graph.crawler.semantic_scholar import fetch_citations
+    from arxiv_graph.graph.builder import build_graph, compute_pagerank
+    from arxiv_graph.graph.scorer import update_scores
+    from arxiv_graph.storage.db import get_session
+    from arxiv_graph.storage.models import Paper
+
+    session = get_session()
+    papers = session.query(Paper).all()
+    if not papers:
+        typer.echo("No papers in DB. Run 'arxiv-graph crawl' first.")
+        session.close()
+        return
+
+    typer.echo(f"Fetching citations for {len(papers)} papers...")
+    arxiv_ids = [p.arxiv_id.split("v")[0] for p in papers]
+    citations = fetch_citations(arxiv_ids)
+
+    updated = 0
+    for paper in papers:
+        base_id = paper.arxiv_id.split("v")[0]
+        info = citations.get(base_id)
+        if info:
+            paper.citation_count = info.citation_count
+            updated += 1
+    session.commit()
+    typer.echo(f"Updated citation counts for {updated} papers")
+
+    # Recompute importance scores with new citation data
+    G = build_graph(session)
+    pageranks = compute_pagerank(G)
+    update_scores(session, pageranks)
+    session.close()
+    typer.echo("Importance scores recalculated.")
+
+
 def main() -> None:
     app()

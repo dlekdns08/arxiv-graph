@@ -6,6 +6,7 @@ import arxiv
 from loguru import logger
 from sqlalchemy.orm import Session
 
+from arxiv_graph.crawler.semantic_scholar import fetch_citations
 from arxiv_graph.storage.models import Author, Paper
 
 
@@ -46,4 +47,18 @@ def ingest_results(results: list[arxiv.Result], session: Session) -> list[Paper]
 
     session.commit()
     logger.info(f"Ingested {len(papers)} papers")
+
+    # Enrich with citation counts from Semantic Scholar
+    arxiv_ids = [p.arxiv_id for p in papers]
+    citations = fetch_citations(arxiv_ids)
+    if citations:
+        for paper in papers:
+            # strip version suffix (e.g. "2106.00573v2" → "2106.00573")
+            base_id = paper.arxiv_id.split("v")[0]
+            info = citations.get(base_id)
+            if info:
+                paper.citation_count = info.citation_count
+        session.commit()
+        logger.info(f"Enriched {len(citations)} papers with citation counts")
+
     return papers
