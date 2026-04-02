@@ -13,7 +13,7 @@ import networkx as nx
 import numpy as np
 
 _MODEL_NAME = "all-MiniLM-L6-v2"
-_SEMANTIC_THRESHOLD = 0.75  # minimum cosine similarity for an edge
+_SEMANTIC_THRESHOLD = 0.5  # minimum cosine similarity for an edge
 _AUTHOR_WEIGHT = 1.0
 
 
