@@ -58,6 +58,7 @@ def ingest_results(results: list[arxiv.Result], session: Session) -> list[Paper]
             info = citations.get(base_id)
             if info:
                 paper.citation_count = info.citation_count
+                paper.influential_citation_count = info.influential_count
         session.commit()
         logger.info(f"Enriched {len(citations)} papers with citation counts")
 
