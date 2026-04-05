@@ -9,7 +9,7 @@ app = typer.Typer(name="arxiv-graph", help="ArXiv paper graph builder")
 @app.command()
 def crawl(
     days_back: int = typer.Option(1, "--days", help="How many days back to fetch"),
-    max_results: int = typer.Option(200, "--max", help="Max papers per run"),
+    max_results: int = typer.Option(500, "--max", help="Max papers per run"),
 ) -> None:
     """Run a one-shot crawl and graph update."""
     from arxiv_graph.crawler.arxiv_client import fetch_recent_papers
