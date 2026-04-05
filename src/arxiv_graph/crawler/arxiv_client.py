@@ -24,9 +24,13 @@ def fetch_recent_papers(
     max_results: int = DEFAULT_MAX_RESULTS,
 ) -> Iterator[arxiv.Result]:
     """Yield arXiv results published within the last `days_back` days."""
+    # arXiv 제출일(result.published)이 발표일보다 1-3일 앞서는 경우가 있어
+    # fetch 기준은 넉넉하게 잡고, 최종 필터를 원래 since로 유지한다.
+    _ANNOUNCE_LAG = 3
     since: date = datetime.utcnow().date() - timedelta(days=days_back)
+    fetch_since: date = since - timedelta(days=_ANNOUNCE_LAG)
     query = " OR ".join(f"cat:{c}" for c in categories)
-    logger.info(f"Fetching papers since {since} | query: {query}")
+    logger.info(f"Fetching papers since {since} (fetch_since={fetch_since}) | query: {query}")
 
     # arXiv API는 첫 요청에서도 rate limit에 걸릴 수 있음 — 선제적 대기
     logger.info(f"Waiting {_INITIAL_DELAY}s before first request...")
@@ -41,17 +45,35 @@ def fetch_recent_papers(
     )
 
     count = 0
+    skipped = 0
     delay = _BACKOFF_BASE
 
     for attempt in range(_MAX_RETRIES):
         try:
             for result in client.results(search):
                 pub_date = result.published.date() if result.published else None
-                if pub_date and pub_date < since:
-                    break
+                if pub_date and pub_date < fetch_since:
+                    # arXiv의 정렬 키(발표일)와 result.published(제출일)이 다를 수 있어
+                    # 첫 결과에서 즉시 break하면 실제 최신 논문을 놓칠 수 있음.
+                    # 연속으로 5개 이상 오래된 논문이 나올 때만 중단.
+                    skipped += 1
+                    if skipped == 1:
+                        logger.debug(f"Skipping old paper: {pub_date} < {since} (arxiv_id={result.entry_id})")
+                    if skipped >= 5:
+                        logger.debug(f"5 consecutive old papers — stopping early")
+                        break
+                    continue
+                skipped = 0
                 count += 1
                 yield result
-            logger.info(f"Fetched {count} papers")
+            if count == 0:
+                logger.warning(
+                    f"Fetched 0 papers (since={since}, skipped={skipped}). "
+                    "arXiv may not have published new papers yet (weekend/holiday), "
+                    "or there's a submission-announcement date gap."
+                )
+            else:
+                logger.info(f"Fetched {count} papers (skipped {skipped} older than {since})")
             return
         except arxiv.HTTPError as e:
             if e.status == 429:
