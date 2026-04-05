@@ -18,12 +18,15 @@ def crawl(
     from arxiv_graph.graph.scorer import update_scores
     from arxiv_graph.storage.db import get_session
 
+    from arxiv_graph.scheduler.job import _prune_papers
+
     session = get_session()
     results = list(fetch_recent_papers(days_back=days_back, max_results=max_results))
     ingest_results(results, session)
     G = build_graph(session)
     pageranks = compute_pagerank(G)
     update_scores(session, pageranks)
+    _prune_papers(session)
     session.close()
     logger.info("Done.")
 
