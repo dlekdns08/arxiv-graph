@@ -33,8 +33,9 @@ def score_recency(paper: Paper) -> float:
 
 
 def score_citations(paper: Paper) -> float:
-    # Placeholder — replace with Semantic Scholar / OpenAlex lookup
-    return min(paper.citation_count / 100, 1.0)
+    # 일반 인용수 + influential 인용수(3배 가중) 합산, 100 기준으로 정규화
+    weighted = paper.citation_count + 3 * paper.influential_citation_count
+    return min(weighted / 100, 1.0)
 
 
 def compute_importance(paper: Paper, pagerank: float = 0.0) -> float:
