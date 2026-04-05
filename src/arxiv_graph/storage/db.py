@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from arxiv_graph.storage.models import Base
@@ -19,7 +19,21 @@ def get_engine(db_url: str = _DEFAULT_DB_URL):
     _DATA_DIR.mkdir(parents=True, exist_ok=True)
     engine = create_engine(db_url, echo=False)
     Base.metadata.create_all(engine)
+    _migrate(engine)
     return engine
+
+
+def _migrate(engine) -> None:
+    """기존 DB에 누락된 컬럼을 추가하는 간단한 마이그레이션."""
+    with engine.connect() as conn:
+        existing = {row[1] for row in conn.execute(text("PRAGMA table_info(papers)"))}
+        pending = {
+            "influential_citation_count": "INTEGER DEFAULT 0",
+        }
+        for col, typedef in pending.items():
+            if col not in existing:
+                conn.execute(text(f"ALTER TABLE papers ADD COLUMN {col} {typedef}"))
+                conn.commit()
 
 
 def get_session(db_url: str = _DEFAULT_DB_URL) -> Session:
