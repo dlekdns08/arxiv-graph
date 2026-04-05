@@ -46,9 +46,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      # 5. 크롤링 실행 (최근 1일치, 최대 200편)
+      # 5. 크롤링 실행 (최근 1일치, 최대 500편)
       - name: Run crawl
-        run: uv run arxiv-graph crawl --days 1 --max 200
+        run: uv run arxiv-graph crawl --days 2 --max 1000
 
       # 6. 통계 출력 (Actions 로그에서 확인 가능)
       - name: Print stats
