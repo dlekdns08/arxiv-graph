@@ -10,7 +10,7 @@ import arxiv
 from loguru import logger
 
 DEFAULT_CATEGORIES = ["cs.CL", "cs.LG", "cs.AI"]
-DEFAULT_MAX_RESULTS = 200
+DEFAULT_MAX_RESULTS = 500
 
 _INITIAL_DELAY = 5      # 첫 요청 전 대기 (초)
 _MAX_RETRIES = 5
