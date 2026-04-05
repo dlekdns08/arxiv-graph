@@ -40,6 +40,7 @@ class Paper(Base):
     pdf_url: str = Column(String)
     importance_score: float = Column(Float, default=0.0)
     citation_count: int = Column(Integer, default=0)
+    influential_citation_count: int = Column(Integer, default=0)
     created_at: datetime = Column(DateTime, default=datetime.utcnow)
 
     authors = relationship("Author", secondary=paper_author, back_populates="papers")
