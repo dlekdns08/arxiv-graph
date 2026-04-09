@@ -136,3 +136,10 @@ score = 0.3 × recency + 0.4 × citations + 0.3 × pagerank
 - **카테고리 추가**: `arxiv_client.py`의 `DEFAULT_CATEGORIES` 수정
 - **유사도 모델 교체**: `builder.py`의 `_MODEL_NAME` 변경
 - **DB 교체**: 각 함수의 `db_url` 파라미터로 PostgreSQL 등 지정 가능
+
+## 관련 프로젝트
+
+- [blog](https://github.com/dlekdns08/blog) — Next.js 블로그 프론트엔드
+- [api](https://github.com/dlekdns08/api) — 블로그 백엔드 API
+- [self-healing-cicd](https://github.com/dlekdns08/self-healing-cicd) — CI/CD 자가치유 시스템
+- [ai-pr-agent](https://github.com/dlekdns08/ai-pr-agent) — AI 코드 리뷰 에이전트
