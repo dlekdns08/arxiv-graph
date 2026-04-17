@@ -33,15 +33,23 @@ def ingest_results(results: list[arxiv.Result], session: Session) -> list[Paper]
         paper.categories = ",".join(result.categories)
         paper.pdf_url = result.pdf_url
 
-        # Upsert authors
-        paper.authors = []
-        for a in result.authors:
-            name = a.name.strip()
-            author = session.query(Author).filter_by(name=name).first()
-            if author is None:
-                author = Author(name=name)
-                session.add(author)
-            paper.authors.append(author)
+        # Upsert authors (dedupe within a single paper; arxiv occasionally
+        # lists the same name twice, which would violate the paper_author
+        # UNIQUE(paper_id, author_id) constraint).
+        with session.no_autoflush:
+            seen: set[str] = set()
+            new_authors: list[Author] = []
+            for a in result.authors:
+                name = a.name.strip()
+                if not name or name in seen:
+                    continue
+                seen.add(name)
+                author = session.query(Author).filter_by(name=name).first()
+                if author is None:
+                    author = Author(name=name)
+                    session.add(author)
+                new_authors.append(author)
+            paper.authors = new_authors
 
         papers.append(paper)
 
